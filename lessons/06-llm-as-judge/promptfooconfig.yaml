@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 6 — LLM-as-judge
+# New things compared to lesson 5:
+#   - `llm-rubric`: another model grades the answer against a rule written in plain English
+#   - choosing the judge model (defaultTest.options.provider)
+#   - `metric`: named scores, so the viewer shows "keyword" vs "judge" separately
+
+description: "Lesson 6: a judge grades the excuses"
+
+prompts:
+  - id: file://prompts/excuse.md
+    label: "Excuse"
+
+# The model that WRITES the excuses
+providers:
+  - id: ollama:chat:llama3.2:3b
+    label: "Llama 3.2 (3B)"
+    config:
+      temperature: 0.7
+
+defaultTest:
+  options:
+    # The model that GRADES the excuses (the "judge").
+    # Without this, promptfoo would use a paid OpenAI model by default.
+    # temperature 0 = the judge should be as consistent as possible.
+    provider:
+      id: ollama:chat:gemma3:4b
+      config:
+        temperature: 0
+
+  assert:
+    # Strict, deterministic check (same as lessons 2-4): the exact word must appear
+    - type: icontains
+      value: "{{keyword}}"
+      metric: keyword_strict
+
+    # The same idea, judged by MEANING instead of exact words.
+    # The rubric is a template: {{mishap}} and {{audience}} are filled per test.
+    # judge-check.yaml uses the SAME rubric texts. Keep them in sync!
+    - type: llm-rubric
+      value: >-
+        The text is an excuse that clearly refers to this situation:
+        "{{mishap}}". Synonyms and paraphrases are fine, as long as a reader
+        can tell which situation it is about.
+      metric: names_mishap_judge
+
+    # Things that are hard or impossible to check with code
+    - type: llm-rubric
+      value: >-
+        The excuse is polite and kind. It does not insult, mock or
+        blame {{audience}}.
+      metric: kind_judge
+
+    - type: llm-rubric
+      value: >-
+        The excuse is meant to be funny: it contains a joke, an exaggeration,
+        a silly reason or wordplay. A plain, serious apology fails.
+      metric: funny_judge
+
+tests:
+  - file://tests.csv
+
+  # INTENTIONAL FAIL: a rubric the excuse can't meet (it's written in English).
+  # Expect the judge to fail it AND explain why in its reason.
+  - description: "INTENTIONAL FAIL: rubric asks for French"
+    vars:
+      mishap: "missing the bus"
+      audience: "my boss"
+      keyword: bus
+    assert:
+      - type: llm-rubric
+        value: The excuse is written entirely in French.
+        metric: french_judge

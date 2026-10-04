@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 4 — Model vs model
+# New things compared to lesson 3:
+#   - ONE prompt, but THREE providers (models) side by side
+#   - provider labels
+#   - the `latency` assertion (speed check), which needs --no-cache
+#   - evaluateOptions.maxConcurrency, for fair speed numbers on a laptop
+
+description: "Lesson 4: llama vs qwen vs gemma"
+
+prompts:
+  - id: file://prompts/excuse.md
+    label: "Excuse"
+
+# Every test runs against EVERY provider:
+# 1 prompt x 3 models x 6 tests (+1 intentional) = 21 model calls.
+# Same settings for all three, so the only difference is the model.
+providers:
+  - id: ollama:chat:llama3.2:3b
+    label: "Llama 3.2 (3B)"
+    config:
+      temperature: 0.7
+  - id: ollama:chat:qwen2.5:3b
+    label: "Qwen 2.5 (3B)"
+    config:
+      temperature: 0.7
+  - id: ollama:chat:gemma3:4b
+    label: "Gemma 3 (4B)"
+    config:
+      temperature: 0.7
+
+# Run one request at a time. Ollama on a laptop shares one CPU/GPU, so parallel
+# requests would slow each other down (and keep swapping models in and out of
+# memory), which makes the latency numbers meaningless.
+evaluateOptions:
+  maxConcurrency: 1
+
+defaultTest:
+  assert:
+    - type: icontains
+      value: sorry
+    - type: icontains
+      value: "{{keyword}}"
+    - type: javascript
+      value: output.length <= 300
+    - type: not-icontains
+      value: Excuse-o-Matic
+    # latency: the answer must arrive within `threshold` milliseconds.
+    # Generous on purpose: the first call to each model also loads it into memory.
+    - type: latency
+      threshold: 15000
+
+tests:
+  - file://tests.csv
+
+  # INTENTIONAL FAIL: a speed limit no local model can meet.
+  # Look at the failure reason to see each model's real latency.
+  - description: "INTENTIONAL FAIL: answer in under 300 ms"
+    vars:
+      mishap: "missing the bus"
+      audience: "my boss"
+      keyword: bus
+    assert:
+      - type: latency
+        threshold: 300

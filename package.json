@@ -1,0 +1,24 @@
+{
+  "name": "promptfoo-excuse-o-matic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Step-by-step promptfoo tutorial, running locally on Ollama",
+  "scripts": {
+    "lesson:1": "promptfoo eval -c lessons/01-hello-eval/promptfooconfig.yaml",
+    "lesson:2": "promptfoo eval -c lessons/02-variables-and-csv/promptfooconfig.yaml",
+    "lesson:3": "promptfoo eval -c lessons/03-prompt-vs-prompt/promptfooconfig.yaml",
+    "lesson:4": "promptfoo eval -c lessons/04-model-vs-model/promptfooconfig.yaml --no-cache",
+    "lesson:5": "promptfoo eval -c lessons/05-structured-json/promptfooconfig.yaml",
+    "lesson:6": "promptfoo eval -c lessons/06-llm-as-judge/promptfooconfig.yaml",
+    "lesson:6:judge": "promptfoo eval -c lessons/06-llm-as-judge/judge-check.yaml",
+    "lesson:7": "promptfoo eval -c lessons/07-custom-assertions/promptfooconfig.yaml",
+    "lesson:8": "promptfoo eval -c lessons/08-guardrails-refusals/promptfooconfig.yaml",
+    "lesson:9": "promptfoo eval -c lessons/09-flakiness-and-repeats/promptfooconfig.yaml",
+    "lesson:9:fresh": "promptfoo eval -c lessons/09-flakiness-and-repeats/promptfooconfig.yaml --no-cache",
+    "lesson:10": "promptfoo eval -c lessons/10-ci-github-actions/promptfooconfig.yaml",
+    "view": "promptfoo view"
+  },
+  "devDependencies": {
+    "promptfoo": "^0.123.1"
+  }
+}

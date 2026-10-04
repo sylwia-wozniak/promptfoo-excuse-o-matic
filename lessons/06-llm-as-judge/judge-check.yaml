@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 6, part 2 — Who judges the judge?
+# Here NO model writes excuses. We write them by hand, with a known correct
+# verdict, and check whether the judge agrees.
+#
+#   - the `echo` provider returns the prompt unchanged, so the "answer" is
+#     exactly our hand-written {{excuse}}
+#   - `llm-rubric`     = we expect the judge to say PASS
+#   - `not-llm-rubric` = we expect the judge to say FAIL
+#   - the rubric texts are COPIED from promptfooconfig.yaml (keep them in sync!).
+#     Each one is written once here with a YAML anchor (&name) and reused (*name).
+
+description: "Lesson 6 part 2: checking the judge"
+
+prompts:
+  - id: "{{excuse}}"
+    label: "Hand-written excuse"
+
+providers:
+  - id: echo
+    label: "echo (no model)"
+
+defaultTest:
+  options:
+    provider:
+      id: ollama:chat:gemma3:4b
+      config:
+        temperature: 0
+
+tests:
+  # --- funny_judge ---------------------------------------------------------
+  - description: "Funny excuse → judge should say FUNNY"
+    vars:
+      excuse: "Sorry I'm late, my cat staged a sit-in on my keyboard and demanded tuna as ransom."
+    assert:
+      - type: llm-rubric
+        value: &funny_rubric >-
+          The excuse is meant to be funny: it contains a joke, an exaggeration,
+          a silly reason or wordplay. A plain, serious apology fails.
+        metric: funny_judge
+
+  - description: "Plain, serious apology → judge should say NOT funny"
+    vars:
+      excuse: "Sorry, I was late because the bus was delayed. It will not happen again."
+    assert:
+      - type: not-llm-rubric
+        value: *funny_rubric
+        metric: funny_judge
+
+  # --- kind_judge ----------------------------------------------------------
+  - description: "Kind excuse → judge should say KIND"
+    vars:
+      audience: "my roommate"
+      excuse: "Sorry I ate your pizza! It smelled so good that my willpower simply left the building. I'll buy you a new one."
+    assert:
+      - type: llm-rubric
+        value: &kind_rubric >-
+          The excuse is polite and kind. It does not insult, mock or
+          blame {{audience}}.
+        metric: kind_judge
+
+  - description: "Insults the roommate → judge should say NOT kind"
+    vars:
+      audience: "my roommate"
+      excuse: "Sorry I ate your pizza, but honestly, only a slob leaves food lying around like that."
+    assert:
+      - type: not-llm-rubric
+        value: *kind_rubric
+        metric: kind_judge
+
+  - description: "Blames the boss → judge should say NOT kind"
+    vars:
+      audience: "my boss"
+      excuse: "Sorry I'm late, but if you scheduled meetings at a normal hour this would not keep happening."
+    assert:
+      - type: not-llm-rubric
+        value: *kind_rubric
+        metric: kind_judge
+
+  # --- names_mishap_judge --------------------------------------------------
+  - description: "Synonym ('succulent') → judge should say it NAMES the mishap"
+    vars:
+      mishap: "letting the office plant die"
+      excuse: "Sorry, our office succulent has gone to the big greenhouse in the sky. I forgot it needed water."
+    assert:
+      - type: llm-rubric
+        value: &names_mishap_rubric >-
+          The text is an excuse that clearly refers to this situation:
+          "{{mishap}}". Synonyms and paraphrases are fine, as long as a reader
+          can tell which situation it is about.
+        metric: names_mishap_judge
+
+  - description: "Wrong situation → judge should say it does NOT name the mishap"
+    vars:
+      mishap: "forgetting my mom's birthday"
+      excuse: "Sorry I broke the office coffee machine, it was making suspicious noises anyway."
+    assert:
+      - type: not-llm-rubric
+        value: *names_mishap_rubric
+        metric: names_mishap_judge
+
+  - description: "Vague, could be anything → judge should say it does NOT name the mishap"
+    vars:
+      mishap: "being 10 minutes late for the morning standup"
+      excuse: "Sorry, it was one of those days. You know how it is!"
+    assert:
+      - type: not-llm-rubric
+        value: *names_mishap_rubric
+        metric: names_mishap_judge

@@ -1,0 +1,9 @@
+__description,mishap,audience,keyword,__expected
+Late for standup,being 10 minutes late for the morning standup,my boss,standup,
+Roommate's pizza,eating my roommate's leftover pizza,my roommate,pizza,
+Mom's birthday,forgetting my mom's birthday,my mom,birthday,not-icontains: As an AI
+Coffee machine,breaking the office coffee machine,my boss,coffee,
+Cat's sunny spot,sitting in my cat's favorite sunny spot,my cat,sun,
+Karaoke night,missing my best friend's karaoke night,my best friend,karaoke,
+Office plant,letting the office plant die,my coworkers,plant,
+INTENTIONAL FAIL,missing the bus,my boss,bus,icontains: pineapple

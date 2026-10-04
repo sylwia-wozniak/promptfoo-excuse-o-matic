@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 3 — Prompt vs prompt
+# New things compared to lesson 2:
+#   - TWO prompts, compared side by side on the same tests
+#   - prompts live in their own .md files (file://)
+#   - each prompt gets a readable label
+
+description: "Lesson 3: Polite Butler vs Dramatic Shakespeare"
+
+# Every test runs against EVERY prompt:
+# 2 prompts x 5 tests = 10 model calls.
+# In the results, each prompt becomes its own column.
+prompts:
+  - id: file://prompts/butler.md
+    label: "Polite Butler"
+  - id: file://prompts/shakespeare.md
+    label: "Dramatic Shakespeare"
+
+providers:
+  - id: ollama:chat:llama3.2:3b
+    config:
+      temperature: 0.7
+
+# Shared checks, applied to both prompts in every test.
+defaultTest:
+  assert:
+    - type: icontains
+      value: "{{keyword}}"
+    - type: javascript
+      value: output.length <= 300
+    - type: not-icontains
+      value: Excuse-o-Matic
+
+tests:
+  - description: "Coffee machine"
+    vars:
+      mishap: "breaking the office coffee machine"
+      audience: "my boss"
+      keyword: coffee
+
+  - description: "Roommate's pizza"
+    vars:
+      mishap: "eating my roommate's leftover pizza"
+      audience: "my roommate"
+      keyword: pizza
+
+  - description: "Mom's birthday"
+    vars:
+      mishap: "forgetting my mom's birthday"
+      audience: "my mom"
+      keyword: birthday
+
+  - description: "Office plant"
+    vars:
+      mishap: "letting the office plant die"
+      audience: "my coworkers"
+      keyword: plant
+
+  # INTENTIONAL: a check that only makes sense for ONE of the prompts.
+  # Expect it to pass for Shakespeare and fail for the Butler, so the
+  # same test can be green in one column and red in the other.
+  - description: "INTENTIONAL: Shakespeare words only"
+    vars:
+      mishap: "spilling red wine on the host's white sofa"
+      audience: "the party host"
+      keyword: wine
+    assert:
+      # icontains-any passes if AT LEAST ONE of the values appears
+      - type: icontains-any
+        value: [thou, thee, thy, alas, forsooth]

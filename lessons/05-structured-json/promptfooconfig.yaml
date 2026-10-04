@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 5 — Structured JSON output
+# New things compared to lesson 4:
+#   - the model answers in JSON: { excuse, believability, blame_target }
+#   - `is-json` with a JSON Schema checks the SHAPE of the answer
+#   - multi-line `javascript` assertions check the VALUES inside the JSON
+#   - Ollama's `format` option forces valid JSON on the model side
+#   - a YAML anchor (&excuse_schema / *excuse_schema) reuses one schema twice
+
+description: "Lesson 5: Excuse-o-Matic speaks JSON"
+
+prompts:
+  - id: file://prompts/excuse-json.md
+    label: "Excuse JSON"
+
+# The SAME model twice. The only difference: the second one gets `format`,
+# which makes Ollama itself force the answer to match the schema.
+providers:
+  - id: ollama:chat:llama3.2:3b
+    label: "Llama: prompt only"
+    config:
+      temperature: 0.7
+
+  - id: ollama:chat:llama3.2:3b
+    label: "Llama: format = schema"
+    config:
+      temperature: 0.7
+      # `&excuse_schema` names this block so we can reuse it below with `*excuse_schema`
+      format: &excuse_schema
+        type: object
+        properties:
+          excuse:
+            type: string
+          believability:
+            type: integer
+            minimum: 1
+            maximum: 10
+          blame_target:
+            type: string
+            minLength: 1
+        required: [excuse, believability, blame_target]
+
+defaultTest:
+  assert:
+    # 1) SHAPE: the whole answer must be valid JSON AND match the schema
+    #    (the same schema the second provider enforces)
+    - type: is-json
+      value: *excuse_schema
+
+    # 2) VALUES: `output` is a string, so parse it first.
+    #    A multi-line javascript assertion must `return` true/false.
+    - type: javascript
+      value: |
+        const answer = JSON.parse(output);
+        return answer.excuse.toLowerCase().startsWith('sorry');
+
+    - type: javascript
+      value: |
+        const answer = JSON.parse(output);
+        return answer.excuse.toLowerCase().includes(context.vars.keyword);
+
+    - type: javascript
+      value: JSON.parse(output).excuse.length <= 250
+
+tests:
+  - file://tests.csv
+
+  # INTENTIONAL FAIL: checks a field we never asked for.
+  # A schema can only guarantee the fields that are in it.
+  - description: "INTENTIONAL FAIL: expects an 'apology_gift' field"
+    vars:
+      mishap: "missing the bus"
+      audience: "my boss"
+      keyword: bus
+    assert:
+      - type: javascript
+        value: JSON.parse(output).apology_gift !== undefined

@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 1 — Hello eval
+# The three building blocks of every promptfoo config:
+#   prompts   -> WHAT we send to the model
+#   providers -> WHICH model answers
+#   tests     -> WHAT we check in the answer (assertions)
+
+description: "Lesson 1: Excuse-o-Matic says hello"
+
+# 1) PROMPTS
+# {{mishap}} is a variable. Each test below fills it with a different value.
+prompts:
+  - |
+    You are Excuse-o-Matic 3000, a friendly assistant that writes funny,
+    polite excuses. Start your answer with "Sorry". Keep it to 1-2 sentences.
+
+    Write an excuse for: {{mishap}}
+
+# 2) PROVIDERS
+# "ollama:chat:<model>" talks to the Ollama server on localhost:11434.
+providers:
+  - id: ollama:chat:llama3.2:3b
+    config:
+      temperature: 0.7
+
+# 3) TESTS
+# Each test = values for the variables + a list of assertions.
+# The test passes only if ALL of its assertions pass.
+tests:
+  - description: "Late for standup"
+    vars:
+      mishap: "being 10 minutes late for the morning standup"
+    assert:
+      # Case-insensitive "contains" check
+      - type: icontains
+        value: sorry
+      # A JavaScript expression: `output` is the model's answer as a string
+      - type: javascript
+        value: output.length <= 280
+
+  - description: "Ate the roommate's leftovers"
+    vars:
+      mishap: "eating my roommate's leftover pizza"
+    assert:
+      - type: icontains
+        value: sorry
+      - type: icontains
+        value: pizza
+      - type: javascript
+        value: output.length <= 280
+
+  - description: "Forgot mom's birthday"
+    vars:
+      mishap: "forgetting my mom's birthday"
+    assert:
+      - type: icontains
+        value: sorry
+      # not-icontains = the text must NOT appear
+      - type: not-icontains
+        value: "As an AI"
+
+  # This test FAILS ON PURPOSE, so you can see what a failure looks like.
+  - description: "INTENTIONAL FAIL: expects a word the model won't use"
+    vars:
+      mishap: "missing the bus"
+    assert:
+      - type: icontains
+        value: pineapple

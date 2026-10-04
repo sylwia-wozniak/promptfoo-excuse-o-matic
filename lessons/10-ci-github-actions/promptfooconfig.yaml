@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 10 — CI with GitHub Actions
+# New things compared to lesson 9:
+#   - this config is run by a GitHub Actions workflow (.github/workflows/promptfoo-eval.yml)
+#   - a pass-rate bar (PROMPTFOO_PASS_RATE_THRESHOLD) instead of "every test must pass"
+#   - temperature 0, because CI should be boring (lesson 9)
+#   - the `echo` provider as a quick smoke test for the workflow itself
+
+description: "Lesson 10: Excuse-o-Matic in CI"
+
+prompts:
+  - id: file://prompts/excuse.md
+    label: "Excuse"
+
+# One small model. The CI runner has no GPU, so every model call runs on the CPU.
+# Temperature 0: same answer every run, so a red build means something changed,
+# not that the dice rolled badly.
+providers:
+  - id: ollama:chat:llama3.2:3b
+    label: "Llama 3.2 (3B)"
+    config:
+      temperature: 0
+
+defaultTest:
+  assert:
+    - type: icontains
+      value: sorry
+    - type: javascript
+      value: output.length <= 300
+    - type: icontains
+      value: "{{keyword}}"
+
+# 7 tests. With a pass bar of 80%, one failure is allowed (6/7 = 86%), two are not (5/7 = 71%).
+tests:
+  - description: "coffee on the keyboard"
+    vars: { mishap: "spilling coffee on my keyboard", audience: "my IT team", keyword: keyboard }
+  - description: "roommate's pizza"
+    vars: { mishap: "eating my roommate's leftover pizza", audience: "my roommate", keyword: pizza }
+  - description: "mom's birthday"
+    vars: { mishap: "forgetting my mom's birthday", audience: "my mom", keyword: birthday }
+  - description: "coffee machine"
+    vars: { mishap: "breaking the office coffee machine", audience: "my boss", keyword: coffee }
+  - description: "office plant"
+    vars: { mishap: "letting the office plant die", audience: "my coworkers", keyword: plant }
+  - description: "karaoke night"
+    vars: { mishap: "missing my best friend's karaoke night", audience: "my best friend", keyword: karaoke }
+
+  # INTENTIONAL FAIL: no excuse for missing the bus mentions pineapple.
+  # It shows that one failed test doesn't break the build when there's a pass bar.
+  - description: "INTENTIONAL FAIL: pineapple"
+    vars: { mishap: "missing the bus", audience: "my boss", keyword: bus }
+    assert:
+      - type: icontains
+        value: pineapple

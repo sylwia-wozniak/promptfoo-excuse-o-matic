@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Lesson 7 — Custom assertions
+# New things compared to lesson 6:
+#   - assertions written in their own files: JavaScript (.js) and Python (.py)
+#   - returning { pass, score, reason } instead of true/false,
+#     so failures explain themselves and partial credit is possible
+#   - an inline javascript assertion that returns an object too
+
+description: "Lesson 7: never blame the cat"
+
+prompts:
+  - id: file://prompts/excuse-json.md
+    label: "Excuse JSON"
+
+# JSON output, forced by Ollama's `format` (lesson 5)
+providers:
+  - id: ollama:chat:llama3.2:3b
+    label: "Llama 3.2 (3B)"
+    config:
+      temperature: 0.7
+      format:
+        type: object
+        properties:
+          excuse: { type: string }
+          believability: { type: integer, minimum: 1, maximum: 10 }
+          blame_target: { type: string, minLength: 1 }
+        required: [excuse, believability, blame_target]
+
+defaultTest:
+  assert:
+    # JavaScript file: the file exports one function (output, context) => result
+    - type: javascript
+      value: file://assertions/no-cat-blame.js
+      metric: no_cat_blame
+
+    # Python file: promptfoo calls the function get_assert(output, context)
+    - type: python
+      value: file://assertions/excuse_checklist.py
+      metric: checklist
+
+    # Inline javascript can return an object too, not just true/false
+    - type: javascript
+      value: |
+        const blamed = JSON.parse(output).blame_target;
+        const selfBlame = /^(me|myself|i)$/i.test(blamed.trim());
+        return {
+          pass: !selfBlame,
+          score: selfBlame ? 0 : 1,
+          reason: selfBlame
+            ? `Blames "${blamed}". An excuse should blame something else!`
+            : `Blames "${blamed}"`,
+        };
+      metric: not_self_blame
+
+tests:
+  - file://tests.csv
+
+  # INTENTIONAL FAIL: the mishap practically asks for the cat to be blamed.
+  # Watch the no_cat_blame reason in the viewer.
+  - description: "INTENTIONAL FAIL: the cat was right there"
+    vars:
+      mishap: "the cookie jar falling off the shelf while my cat was sitting next to it"
+      audience: "my mom"
+      keyword: cookie

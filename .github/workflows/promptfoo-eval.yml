@@ -1,0 +1,102 @@
+# Lesson 10 — run the Excuse-o-Matic eval on GitHub Actions.
+# Manual only: Actions tab → "promptfoo eval" → "Run workflow".
+# See lessons/10-ci-github-actions/README.md
+
+name: promptfoo eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "ollama = real model (a few minutes), echo = quick check of the workflow itself"
+        type: choice
+        options: [ollama, echo]
+        default: ollama
+      threshold:
+        description: "Minimum pass rate in % (the job fails below this)"
+        type: string
+        default: "80"
+
+permissions:
+  contents: read
+
+env:
+  CONFIG: lessons/10-ci-github-actions/promptfooconfig.yaml
+  MODEL: llama3.2:3b
+  PROMPTFOO_DISABLE_TELEMETRY: "1"
+  PROMPTFOO_DISABLE_UPDATE: "1"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # promptfoo 0.123 needs Node 22.22 or newer
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # ---------- Ollama (skipped for the echo smoke test) ----------
+
+      # Keep the downloaded model between runs, so the next run skips the ~2 GB download
+      - name: Cache Ollama models
+        if: inputs.provider == 'ollama'
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama/models
+          key: ollama-${{ env.MODEL }}
+
+      - name: Install and start Ollama
+        if: inputs.provider == 'ollama'
+        run: |
+          # The installer needs zstd to unpack Ollama (usually already on the runner)
+          command -v zstd >/dev/null || sudo apt-get install -y zstd
+          curl -fsSL https://ollama.com/install.sh | sh
+          # The installer may start Ollama as a system service (models stored elsewhere).
+          # Stop it and run our own server, so models live in ~/.ollama/models (cached above).
+          sudo systemctl stop ollama 2>/dev/null || true
+          nohup ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:11434/api/version && exit 0
+            sleep 1
+          done
+          echo "Ollama did not start:"; cat "$RUNNER_TEMP/ollama.log"; exit 1
+
+      - name: Pull model
+        if: inputs.provider == 'ollama'
+        run: ollama pull "$MODEL"
+
+      # ---------- The eval ----------
+
+      - name: Run promptfoo eval
+        env:
+          # The echo provider just repeats the prompt, so its "results" mean nothing: never fail on them
+          PROMPTFOO_PASS_RATE_THRESHOLD: ${{ inputs.provider == 'echo' && '0' || inputs.threshold }}
+          PROVIDER: ${{ inputs.provider }}
+        run: |
+          mkdir -p output
+          EXTRA=""
+          if [ "$PROVIDER" = "echo" ]; then EXTRA="--providers echo"; fi
+          # No --no-cache needed: every run starts on a fresh machine, so promptfoo's cache is empty
+          npx promptfoo eval -c "$CONFIG" $EXTRA \
+            -o output/results.json -o output/results.html
+
+      # The steps below run even when the eval failed, so you can see why
+
+      - name: Write summary
+        if: always() && hashFiles('output/results.json') != ''
+        run: node lessons/10-ci-github-actions/summary.js output/results.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptfoo-results-${{ inputs.provider }}
+          path: output/
+          if-no-files-found: ignore
