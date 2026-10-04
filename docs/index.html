@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Excuse-o-Matic Guide</title>
+  <meta name="description" content="A beginner's guide to testing AI prompts with promptfoo, in 10 small lessons that run free on your laptop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span>Excuse-o-Matic 3000</span>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#start">Start</a>
+      <a href="#lessons">Lessons</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <!-- 1. Hero -->
+  <section class="hero" style="margin-top:0">
+    <div class="sphere" aria-hidden="true"></div>
+    <span class="label">A beginner's guide to promptfoo</span>
+    <h1>Test your<br>AI prompts.<br>For free.</h1>
+    <p class="lead">Learn to test AI prompts step by step, with a silly assistant that writes excuses
+      for everyday mishaps. 10 small lessons, all running on your own laptop. No API keys, no bills.</p>
+    <div class="actions">
+      <a class="btn" href="#start">Start in 5 minutes →</a>
+      <a class="btn ghost" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/01-hello-eval">Open lesson 1</a>
+    </div>
+  </section>
+
+  <!-- 2. Why -->
+  <section id="why">
+    <span class="label">Why test prompts?</span>
+    <h2>Because AI answers change</h2>
+    <div class="grid">
+      <div class="card">
+        <span class="num">01</span>
+        <h3>The same question, different answers</h3>
+        <p class="muted">Models pick their words with some randomness. A prompt that worked today
+          can fail tomorrow, with nothing changed.</p>
+      </div>
+      <div class="card">
+        <span class="num">02</span>
+        <h3>Small edits break things</h3>
+        <p class="muted">One new sentence in a prompt can fix one case and break three others.
+          Without tests, you only find out from users.</p>
+      </div>
+      <div class="card">
+        <span class="num">03</span>
+        <h3>Numbers beat gut feeling</h3>
+        <p class="muted">Which prompt is better? Which model? An eval gives you a pass rate
+          instead of "it looked fine when I tried it".</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. How it works -->
+  <section id="how">
+    <span class="label">How promptfoo works</span>
+    <h2>One config, one command</h2>
+    <p class="lead" style="margin-bottom:28px">You describe prompts, models and tests in a YAML file.
+      promptfoo sends every combination to the models, checks every answer and shows a report.</p>
+    <div class="flow">
+      <div class="step"><b>Prompts</b>what you ask</div>
+      <div class="arrow">×</div>
+      <div class="step"><b>Providers</b>which models</div>
+      <div class="arrow">×</div>
+      <div class="step"><b>Tests</b>example inputs</div>
+      <div class="arrow">→</div>
+      <div class="step"><b>Answers</b>from each model</div>
+      <div class="arrow">→</div>
+      <div class="step"><b>Assertions</b>checks per answer</div>
+      <div class="arrow">→</div>
+      <div class="step dark"><b>Pass rate</b>+ report in <code style="color:inherit;background:none;border:0">promptfoo view</code></div>
+    </div>
+<pre><code># promptfooconfig.yaml (lesson 1, shortened)
+prompts:
+  - |
+    You are Excuse-o-Matic 3000, a friendly assistant that writes funny,
+    polite excuses. Start your answer with "Sorry". Keep it to 1-2 sentences.
+
+    Write an excuse for: {{mishap}}
+providers:
+  - id: ollama:chat:llama3.2:3b
+tests:
+  - vars:
+      mishap: "being 10 minutes late for the morning standup"
+    assert:
+      - type: icontains
+        value: sorry
+      - type: javascript
+        value: output.length &lt;= 280</code></pre>
+  </section>
+
+  <!-- 4. Words -->
+  <section id="words">
+    <span class="label">8 words to know</span>
+    <h2>The vocabulary</h2>
+    <div class="grid">
+      <div class="card"><h3>Prompt</h3><p class="muted">The text you send to the model. It can have <code>{{variables}}</code>.</p></div>
+      <div class="card"><h3>Provider</h3><p class="muted">The model that answers, e.g. <code>ollama:chat:llama3.2:3b</code>.</p></div>
+      <div class="card"><h3>Test</h3><p class="muted">One example input, plus the checks its answer must pass.</p></div>
+      <div class="card"><h3>Variables</h3><p class="muted"><code>vars</code> fill the blanks in the prompt. One prompt × 10 tests = 10 model calls.</p></div>
+      <div class="card"><h3>Assertion</h3><p class="muted">One check on an answer: contains a word, is valid JSON, a judge says "kind"…</p></div>
+      <div class="card"><h3>Pass rate</h3><p class="muted">How many tests passed. In CI you set a bar, e.g. "at least 80%".</p></div>
+      <div class="card"><h3>Temperature</h3><p class="muted">How random the answers are. <code>0</code> = the same answer every time.</p></div>
+      <div class="card"><h3>Cache</h3><p class="muted">promptfoo saves answers and reuses them. <code>--no-cache</code> asks the model again.</p></div>
+    </div>
+  </section>
+
+  <!-- 5. Start -->
+  <section id="start">
+    <span class="label">Start in 5 minutes</span>
+    <h2>Setup</h2>
+    <ol class="steps">
+      <li><div><h3>Install Node.js 22.22+ and Ollama</h3>
+        <p class="muted">Get them from <a href="https://nodejs.org">nodejs.org</a> and <a href="https://ollama.com">ollama.com</a>. Ollama runs AI models on your computer.</p></div></li>
+      <li><div><h3>Download a model (about 2 GB)</h3>
+        <pre><code>ollama pull llama3.2:3b</code></pre>
+        <p class="muted" style="margin-top:10px">Some lessons also use <code>qwen2.5:3b</code> and <code>gemma3:4b</code>.</p></div></li>
+      <li><div><h3>Get the code</h3>
+        <pre><code>git clone https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic.git
+cd promptfoo-excuse-o-matic
+npm install</code></pre></div></li>
+      <li><div><h3>Run lesson 1 and look at the results</h3>
+        <pre><code>npm run lesson:1
+npm run view</code></pre>
+        <p class="muted" style="margin-top:10px">One test fails on purpose, so you see what a failure looks like.</p></div></li>
+    </ol>
+  </section>
+
+  <!-- 6. Lessons -->
+  <section id="lessons">
+    <span class="label">The 10 lessons</span>
+    <h2>One idea at a time</h2>
+    <p class="muted" style="margin-bottom:24px">Every result below is real: it comes from running the lessons on a laptop.</p>
+    <div class="grid">
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/01-hello-eval">
+        <span class="num">Lesson 01</span><h3>Hello eval</h3>
+        <p class="muted">Prompts, providers, tests and your first checks.</p>
+        <p class="result">3 of 4 tests pass. The 4th expects "pineapple", on purpose.</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/02-variables-and-csv">
+        <span class="num">Lesson 02</span><h3>Variables &amp; CSV</h3>
+        <p class="muted">Tests from a spreadsheet, shared checks with <code>defaultTest</code>.</p>
+        <p class="result">One CSV row = one test. Add cases without touching YAML.</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/03-prompt-vs-prompt">
+        <span class="num">Lesson 03</span><h3>Prompt vs prompt</h3>
+        <p class="muted">A polite butler vs. Shakespeare, side by side.</p>
+        <p class="result">Both scored 9/12, but failed in different places: Shakespeare says "thy special day", never "birthday".</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/04-model-vs-model">
+        <span class="num">Lesson 04</span><h3>Model vs model</h3>
+        <p class="muted">Llama vs. Qwen vs. Gemma, quality and speed.</p>
+        <p class="result">Gemma 18/18, Llama 16/18, Qwen 13/18, but Qwen was the fastest (~500 ms).</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/05-structured-json">
+        <span class="num">Lesson 05</span><h3>Structured JSON</h3>
+        <p class="muted">Answers that code can read, checked with a JSON Schema.</p>
+        <p class="result">The schema caught "believeability", a typo a human would miss.</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/06-llm-as-judge">
+        <span class="num">Lesson 06</span><h3>LLM-as-judge</h3>
+        <p class="muted">One model grades another, then we test the judge.</p>
+        <p class="result">The judge passed every answer, but got only 5 of 8 hand-written cases right.</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/07-custom-assertions">
+        <span class="num">Lesson 07</span><h3>Custom assertions</h3>
+        <p class="muted">Your own checks in JavaScript and Python, with readable reasons.</p>
+        <p class="result">The cat was blamed in 8 of 21 answers. 🐈</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/08-guardrails-refusals">
+        <span class="num">Lesson 08</span><h3>Guardrails &amp; refusals</h3>
+        <p class="muted">Refuse fake doctor's notes, but don't refuse harmless requests.</p>
+        <p class="result">No model got both sides right. Llama refused 0 of 12 shady requests.</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/09-flakiness-and-repeats">
+        <span class="num">Lesson 09</span><h3>Flakiness &amp; repeats</h3>
+        <p class="muted">Run tests several times. What does temperature really do?</p>
+        <p class="result">Temperature 0: 48/60, the same every run. Temperature 1: 31/60, different every run.</p></a>
+      <a class="card link" href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/10-ci-github-actions">
+        <span class="num">Lesson 10</span><h3>CI with GitHub Actions</h3>
+        <p class="muted">Run the eval on GitHub with one click, with a pass-rate bar.</p>
+        <p class="result">Ollama runs inside the GitHub runner: 6/7 passed, the build stays green.</p></a>
+    </div>
+  </section>
+
+  <!-- 7. Learned -->
+  <section id="learned">
+    <span class="label">What surprised us</span>
+    <h2>5 things we learned</h2>
+    <div class="grid">
+      <div class="card"><span class="num">01</span><h3>Small judges say "yes" too easily</h3>
+        <p class="muted">An AI judge needs its own tests. Ours missed a rude, a vague and an off-topic excuse. <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/06-llm-as-judge">Lesson 6</a></p></div>
+      <div class="card"><span class="num">02</span><h3>Built-in checks can misfire</h3>
+        <p class="muted"><code>is-refusal</code> treats an answer starting with "Sorry" as a refusal. Every excuse starts with "Sorry". <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/08-guardrails-refusals">Lesson 8</a></p></div>
+      <div class="card"><span class="num">03</span><h3>Temperature isn't personality</h3>
+        <p class="muted">At temperature 0 Qwen still refused "skipped leg day" every time. Temperature changes randomness, not what a model prefers. <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/09-flakiness-and-repeats">Lesson 9</a></p></div>
+      <div class="card"><span class="num">04</span><h3>The cache can hide flakiness</h3>
+        <p class="muted">Run an eval twice and the second run replays the first answers. Use <code>--no-cache</code> when you measure. <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/09-flakiness-and-repeats">Lesson 9</a></p></div>
+      <div class="card"><span class="num">05</span><h3>Always fails = a bug, not bad luck</h3>
+        <p class="muted">A test that fails every run points to a problem in the test, prompt or model. Fix it before it goes into CI. <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic/tree/main/lessons/10-ci-github-actions">Lesson 10</a></p></div>
+      <div class="card panel"><h3>The big one</h3>
+        <p>Run important tests <b>several times</b> and read the <b>pass rate</b>, not a single ✅.</p></div>
+    </div>
+  </section>
+
+  <!-- 8. Cheat sheet -->
+  <section id="cheatsheet">
+    <span class="label">Cheat sheet</span>
+    <h2>Keep this handy</h2>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td><code>npm run lesson:1</code></td><td>Run a lesson (1–10)</td></tr>
+        <tr><td><code>npm run view</code></td><td>Open the results in your browser</td></tr>
+        <tr><td><code>npx promptfoo eval -c path/to/promptfooconfig.yaml</code></td><td>Run any config</td></tr>
+        <tr><td><code>… --repeat 3</code></td><td>Run every test 3 times</td></tr>
+        <tr><td><code>… --no-cache</code></td><td>Ask the model again instead of reusing saved answers</td></tr>
+        <tr><td><code>PROMPTFOO_PASS_RATE_THRESHOLD=80 …</code></td><td>Fail (exit code 100) below an 80% pass rate</td></tr>
+      </table>
+    </div>
+    <div class="table-scroll" style="margin-top:24px">
+      <table>
+        <tr><th>Assertion</th><th>Passes when…</th><th>Lesson</th></tr>
+        <tr><td><code>icontains</code> / <code>not-icontains</code></td><td>the answer contains / doesn't contain a text</td><td>1</td></tr>
+        <tr><td><code>javascript</code></td><td>a JS expression returns true, e.g. <code>output.length &lt;= 280</code></td><td>1</td></tr>
+        <tr><td><code>latency</code></td><td>the answer arrives within N milliseconds</td><td>4</td></tr>
+        <tr><td><code>is-json</code></td><td>the answer is valid JSON, optionally matching a schema</td><td>5</td></tr>
+        <tr><td><code>llm-rubric</code></td><td>an AI judge agrees with a rule in plain English</td><td>6</td></tr>
+        <tr><td><code>file://check.js</code> / <code>.py</code></td><td>your own function says pass</td><td>7</td></tr>
+        <tr><td><code>starts-with</code></td><td>the answer starts with a text, e.g. "REFUSED:"</td><td>8</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 9. FAQ -->
+  <section id="faq">
+    <span class="label">FAQ</span>
+    <h2>Questions</h2>
+    <details><summary>Do I need an API key or a paid account?</summary>
+      <p class="muted">No. Every lesson runs on Ollama, on your own computer. The GitHub Actions run in lesson 10 is free for public repos.</p></details>
+    <details><summary>Why are my results different from the READMEs?</summary>
+      <p class="muted">AI answers are partly random, and different computers can pick different words. That's normal, and it's what lesson 9 is about. Look at pass rates, not single answers.</p></details>
+    <details><summary>How long does a lesson take?</summary>
+      <p class="muted">Each eval runs in about 1–2 minutes. Reading a lesson and trying its exercises takes 15–30 minutes.</p></details>
+    <details><summary>My computer is slow. Can I use a smaller model?</summary>
+      <p class="muted">Yes. Try <code>ollama pull llama3.2:1b</code> and change the provider id in the lesson's <code>promptfooconfig.yaml</code>. Results will be different, which is a lesson too.</p></details>
+    <details><summary>Can I run it in CI?</summary>
+      <p class="muted">Yes, lesson 10 has a GitHub Actions workflow. You start it by hand from the Actions tab, and it runs Ollama inside GitHub's runner.</p></details>
+  </section>
+
+  <footer>
+    Excuse-o-Matic 3000 · a <a href="https://promptfoo.dev">promptfoo</a> tutorial ·
+    <a href="https://github.com/sylwia-wozniak/promptfoo-excuse-o-matic">source on GitHub</a>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -2,3 +2,4 @@ node_modules/
 .promptfoo/
 output/
 .idea/
+.claude/worktrees/

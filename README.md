@@ -5,6 +5,8 @@ excuses for everyday mishaps.
 
 **Zero cost:** everything runs locally on [Ollama](https://ollama.com). You need no API keys.
 
+**New here?** Start with the [beginner's guide](https://sylwia-wozniak.github.io/promptfoo-excuse-o-matic/): what evals are, the key words, and what each lesson teaches.
+
 ## Setup
 
 1. Install **Node.js 22.22+** and **Ollama**

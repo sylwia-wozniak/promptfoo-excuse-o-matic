@@ -7,6 +7,8 @@ Instructions for AI coding agents working in this repo.
 **Excuse-o-Matic 3000**: a step-by-step [promptfoo](https://promptfoo.dev) tutorial. Each lesson
 tests a silly excuse-writing assistant. Everything runs locally on Ollama, at zero cost.
 The roadmap is in [docs/PLAN.md](docs/PLAN.md).
+A one-page guide for newcomers is in `docs/index.html` (styles in `docs/styles.css`), published
+with GitHub Pages. Keep its lesson results in sync with the lesson READMEs.
 
 ## Setup and commands
 

@@ -1,0 +1,160 @@
+/* Excuse-o-Matic guide — styles
+   Inspired by the OFF+BRAND style: warm parchment, sharp white cards, thin lines, no shadows,
+   one colorful gradient. To restyle the page, change the variables below. */
+
+:root {
+  /* Colors */
+  --bg: #e5e4e0;          /* parchment page background */
+  --text: #1d1d1d;        /* ink */
+  --muted: #5c5b58;       /* secondary text */
+  --card: #ffffff;        /* paper: cards, code */
+  --panel: #cdcdc9;       /* stone: highlighted panels */
+  --line: #bfbebe;        /* ash: thin borders */
+  --pass: #2f7d4f;
+  --fail: #b3412e;
+  --sphere: linear-gradient(255deg, #facb0e, #f06ba8 30%, #78bae6 65%, #ffffff);
+
+  /* Type */
+  --font: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-size: 17px;
+  --h1-size: clamp(44px, 9vw, 92px);
+  --h2-size: clamp(28px, 4.5vw, 44px);
+
+  /* Spacing and shape */
+  --page-width: 1100px;
+  --gutter: 20px;
+  --section-gap: 96px;
+  --card-pad: 26px;
+  --radius: 10px;         /* buttons and links only; cards stay sharp */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 var(--text-size)/1.5 var(--font);
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: var(--page-width); margin: 0 auto; padding: 0 var(--gutter); }
+section { margin-top: var(--section-gap); }
+
+/* Headings */
+h1, h2, h3 { font-weight: 400; margin: 0; }
+h1 { font-size: var(--h1-size); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.02em; }
+h2 { font-size: var(--h2-size); line-height: 1; text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 28px; }
+h3 { font-size: 20px; line-height: 1.2; margin-bottom: 8px; }
+p { margin: 0 0 12px; }
+.lead { font-size: 21px; max-width: 34em; }
+.muted { color: var(--muted); }
+
+/* Small uppercase label above a section */
+.label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+/* Links and buttons */
+a { color: inherit; text-underline-offset: 3px; }
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 1px solid var(--text);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-size: 15px;
+}
+.btn:hover { background: var(--text); color: var(--bg); }
+.btn.ghost { border-color: var(--line); }
+
+/* Top bar */
+.top {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 18px 0; border-bottom: 1px solid var(--line);
+  font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.top nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.top nav a { text-decoration: none; }
+.top nav a:hover { text-decoration: underline; }
+
+/* Hero with the gradient sphere */
+.hero { position: relative; padding: 90px 0 40px; }
+.hero > * { position: relative; z-index: 1; }
+.sphere {
+  position: absolute; z-index: 0;
+  width: min(520px, 80vw); aspect-ratio: 1;
+  right: -60px; top: 30px;
+  border-radius: 50%;
+  background: var(--sphere);
+  opacity: 0.85;
+}
+.hero .lead { margin: 28px 0 32px; }
+.hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* Grids of cards (neighbouring borders overlap, so cards share one thin line, like a table) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  padding: 1px 0 0 1px;
+}
+.card { background: var(--card); padding: var(--card-pad); border: 1px solid var(--line); margin: -1px 0 0 -1px; }
+.card .num { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; display: block; }
+.card .result { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 15px; }
+.card.link { text-decoration: none; display: block; }
+.card.link:hover { background: #f6f5f1; }
+.card.link h3::after { content: " →"; }
+
+/* Flow diagram */
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; }
+.flow .step { background: var(--card); border: 1px solid var(--line); padding: 16px 18px; flex: 1 1 140px; }
+.flow .step b { display: block; font-weight: 600; margin-bottom: 4px; }
+.flow .arrow { align-self: center; font-size: 22px; color: var(--muted); }
+.flow .step.dark { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* Code */
+code { font-family: var(--mono); font-size: 0.88em; background: var(--card); border: 1px solid var(--line); padding: 1px 5px; }
+pre { font-family: var(--mono); font-size: 14px; line-height: 1.5; background: var(--card); border: 1px solid var(--line); padding: 16px 18px; margin: 12px 0 0; overflow-x: auto; }
+pre code { border: 0; padding: 0; background: none; font-size: inherit; }
+.card pre { background: var(--bg); }
+
+/* Numbered setup steps */
+.steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 56px 1fr; gap: 12px; padding: 22px 0; border-top: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 1px solid var(--line); }
+.steps li::before { content: counter(step, decimal-leading-zero); font-size: 28px; line-height: 1; }
+
+/* Tables */
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); font-size: 15px; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 400; color: var(--muted); background: var(--panel); }
+
+/* Highlight panel and FAQ */
+.panel { background: var(--panel); padding: var(--card-pad); }
+details { background: var(--card); border: 1px solid var(--line); border-top: 0; padding: 18px 22px; }
+details:first-of-type { border-top: 1px solid var(--line); }
+summary { cursor: pointer; font-size: 18px; }
+details p { margin-top: 12px; }
+
+.pass { color: var(--pass); }
+.fail { color: var(--fail); }
+
+footer { margin: var(--section-gap) 0 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+
+/* Phones */
+@media (max-width: 640px) {
+  :root { --section-gap: 64px; --card-pad: 20px; --text-size: 16px; }
+  .top nav { display: none; }
+  .hero { padding-top: 60px; }
+  .sphere { right: -120px; top: 10px; opacity: 0.6; }
+  .lead { font-size: 18px; }
+  .flow .arrow { display: none; }
+}
